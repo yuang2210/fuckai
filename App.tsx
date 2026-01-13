@@ -16,17 +16,22 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Verifica se a API KEY existe ao carregar
+  // Verificação inicial da API Key
   useEffect(() => {
-    if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
-      console.error("ERRO: Chave API não encontrada! Configure a variável de ambiente API_KEY.");
-      setError("ERRO DE CONFIGURAÇÃO: Chave API não encontrada. Configure as Environment Variables no seu host.");
+    const key = process.env.API_KEY;
+    console.log("FuckAI: Iniciando aplicação...");
+    
+    if (!key || key === '' || key === 'undefined') {
+      const msg = "CHAVE API AUSENTE: Você precisa configurar a variável de ambiente API_KEY.";
+      console.error(msg);
+      setError(msg);
     }
   }, []);
 
   const handleCapture = async (imageData: string) => {
-    if (!process.env.API_KEY) {
-      setError("Configure sua API_KEY para processar imagens.");
+    const key = process.env.API_KEY;
+    if (!key || key === '') {
+      setError("Ação bloqueada: API_KEY não configurada no ambiente.");
       return;
     }
 
@@ -36,16 +41,18 @@ export default function App() {
     setError(null);
 
     try {
+      // Processamento via Gemini
       const summaryText = await processNotebookPage(imageData);
       setSummary(summaryText);
 
+      // Geração do PDF
       const pdf = await generatePDF(imageData);
       setPdfBlob(pdf);
 
       setState('result');
-    } catch (err) {
-      console.error(err);
-      setError('A IA deu erro. Verifique sua chave ou a conexão.');
+    } catch (err: any) {
+      console.error("Erro no processamento:", err);
+      setError(`Erro: ${err.message || 'Falha ao processar imagem. Verifique sua conexão e a validade da API Key.'}`);
       setState('landing');
     } finally {
       setIsProcessing(false);
@@ -82,9 +89,9 @@ export default function App() {
               AI
             </div>
           </div>
-          <h2 className="text-3xl font-extrabold mb-4 tracking-tight uppercase italic">ESCANEANDO...</h2>
+          <h2 className="text-3xl font-extrabold mb-4 tracking-tight uppercase italic animate-pulse">LENDO SEU CADERNO...</h2>
           <p className="text-zinc-400 max-w-sm">
-            Processando sua página e criando o resumo inteligente.
+            A inteligência está decifrando sua letra e preparando o PDF.
           </p>
         </div>
       )}
