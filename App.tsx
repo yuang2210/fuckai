@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Camera } from './components/Camera';
 import { SummaryView } from './components/SummaryView';
 import { Landing } from './components/Landing';
@@ -16,25 +16,36 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Verifica se a API KEY existe ao carregar
+  useEffect(() => {
+    if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
+      console.error("ERRO: Chave API não encontrada! Configure a variável de ambiente API_KEY.");
+      setError("ERRO DE CONFIGURAÇÃO: Chave API não encontrada. Configure as Environment Variables no seu host.");
+    }
+  }, []);
+
   const handleCapture = async (imageData: string) => {
+    if (!process.env.API_KEY) {
+      setError("Configure sua API_KEY para processar imagens.");
+      return;
+    }
+
     setImage(imageData);
     setState('processing');
     setIsProcessing(true);
     setError(null);
 
     try {
-      // 1. Generate Summary using Gemini
       const summaryText = await processNotebookPage(imageData);
       setSummary(summaryText);
 
-      // 2. Generate PDF
       const pdf = await generatePDF(imageData);
       setPdfBlob(pdf);
 
       setState('result');
     } catch (err) {
       console.error(err);
-      setError('Algo deu errado. A IA provavelmente está cansada.');
+      setError('A IA deu erro. Verifique sua chave ou a conexão.');
       setState('landing');
     } finally {
       setIsProcessing(false);
@@ -71,9 +82,9 @@ export default function App() {
               AI
             </div>
           </div>
-          <h2 className="text-3xl font-extrabold mb-4 tracking-tight">ESCANEEANDO ESSA PORRA...</h2>
+          <h2 className="text-3xl font-extrabold mb-4 tracking-tight uppercase italic">ESCANEANDO...</h2>
           <p className="text-zinc-400 max-w-sm">
-            Estamos analisando sua letra (provavelmente feia), convertendo para PDF e extraindo o que importa.
+            Processando sua página e criando o resumo inteligente.
           </p>
         </div>
       )}
