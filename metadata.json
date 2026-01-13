@@ -1,0 +1,7 @@
+{
+  "name": "Copy of FuckAI - Scan, PDF, Summarize",
+  "description": "A no-nonsense tool to instantly turn your notebook photos into PDFs and concise AI-powered summaries.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
